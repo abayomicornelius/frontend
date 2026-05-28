@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Button } from "@workspace/ui/components/button"
@@ -10,6 +11,7 @@ import type { Position } from "../../hooks/usePositions"
 import { formatPct, formatUsd } from "@/shared/lib/format"
 import { queryKeys } from "../../lib/query-keys"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
+import { CollateralDialog } from "./CollateralDialog"
 
 type Props = {
   onSelectPosition?: (position: Position) => void
@@ -48,11 +50,13 @@ function useFundingCountdown(nextEpochTs: number | undefined): string {
 export function PositionsList({ onSelectPosition }: Props) {
   const { data: positions = [], isLoading } = usePositions()
   const { data: fundingRate } = useFundingRate()
-  const countdown = useFundingCountdown(fundingRate?.nextEpochTs)
+  const countdown = useFundingCountdown((fundingRate as any)?.nextEpochTs)
   const account = useWalletStore((state) => state.address)
   const queryClient = useQueryClient()
   const [closing, setClosing] = useState<string | null>(null)
   const [claiming, setClaiming] = useState<string | null>(null)
+  const [dialogPosition, setDialogPosition] = useState<Position | null>(null)
+  const [dialogMode, setDialogMode] = useState<"add" | "remove" | null>(null)
 
   async function handleClose(position: Position) {
     setClosing(position.key)
@@ -79,6 +83,14 @@ export function PositionsList({ onSelectPosition }: Props) {
     } finally {
       setClosing(null)
     }
+  }
+
+  function handleShare(position: Position) {
+    const url = `${window.location.origin}/trade?market=${encodeURIComponent(position.indexToken)}&type=${position.isLong ? "long" : "short"}`
+    void navigator.clipboard.writeText(url).then(
+      () => toast.success("Position link copied", { description: url }),
+      () => toast.error("Could not copy link to clipboard"),
+    )
   }
 
   async function handleClaim(position: Position) {
@@ -153,11 +165,17 @@ export function PositionsList({ onSelectPosition }: Props) {
               <td className="px-4 py-2 font-mono">{formatUsd(p.collateralUsd)}</td>
               <td className="px-4 py-2 font-mono">{formatUsd(p.entryPrice)}</td>
               <td className="px-4 py-2 font-mono">{formatUsd(p.markPrice)}</td>
-              <td className="px-4 py-2 font-mono text-amber-500">{formatUsd(p.liquidationPrice)}</td>
+              <td className={`px-4 py-2 font-mono ${
+                Math.abs(p.markPrice - p.liquidationPrice) / p.markPrice <= 0.1
+                  ? "text-red-500 font-bold"
+                  : "text-amber-500"
+              }`}>
+                {formatUsd(p.liquidationPrice)}
+              </td>
               <td className="px-4 py-2 font-mono">
-                <span className={p.pnl >= 0 ? "text-green-500" : "text-red-500"}>
-                  {p.pnl >= 0 ? "+" : ""}
-                  {formatUsd(p.pnl)} ({formatPct(p.pnlPercent)})
+                <span className={p.pnlAfterFees >= 0 ? "text-green-500" : "text-red-500"}>
+                  {p.pnlAfterFees >= 0 ? "+" : ""}
+                  {formatUsd(p.pnlAfterFees)} ({formatPct(p.pnlPercent)})
                 </span>
               </td>
               <td className="px-4 py-2 font-mono tabular-nums">
@@ -172,6 +190,38 @@ export function PositionsList({ onSelectPosition }: Props) {
               </td>
               <td className="px-4 py-2">
                 <div className="flex items-center gap-1">
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleShare(p)
+                    }}
+                  >
+                    Share
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDialogPosition(p)
+                      setDialogMode("add")
+                    }}
+                  >
+                    + Collateral
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDialogPosition(p)
+                      setDialogMode("remove")
+                    }}
+                  >
+                    - Collateral
+                  </Button>
                   {p.fundingFeeDebt > 0 && (
                     <Button
                       size="xs"
@@ -202,6 +252,17 @@ export function PositionsList({ onSelectPosition }: Props) {
           ))}
         </tbody>
       </table>
+
+      <CollateralDialog
+        position={dialogPosition}
+        mode={dialogMode}
+        open={dialogPosition !== null}
+        onClose={() => {
+          setDialogPosition(null)
+          setDialogMode(null)
+        }}
+      />
     </div>
   )
 }
+

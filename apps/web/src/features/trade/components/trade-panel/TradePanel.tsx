@@ -18,11 +18,12 @@ import { TradeInfoRows } from "./TradeInfoRows"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 import { ApplyReferralCodePrompt } from "./ApplyReferralCodePrompt"
 import type { TradeType } from "../../hooks/useTradeState"
+import { useDebounce } from "@/shared/hooks/useDebounce"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
 
 export function TradePanel() {
   const trade = useTradeState()
-  const { getMidPrice } = useTokenPrices()
+  const { getMidPrice, isStale } = useTokenPrices()
   const { data: balances } = useTokenBalances()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const account = useWalletStore((state) => state.address)
@@ -30,7 +31,7 @@ export function TradePanel() {
   const {
     tradeType, tradeMode, tradeFlags,
     fromAmount, leverage,
-    toTokenAddress, marketAddress, collateralAddress,
+    fromTokenAddress, toTokenAddress, marketAddress, collateralAddress,
     availableTradeModes,
     setTradeType, setTradeMode,
     setLeverage,
@@ -38,8 +39,9 @@ export function TradePanel() {
     advanced,
   } = trade
 
+  const debouncedFromAmount = useDebounce(fromAmount, 300)
   const entryPrice = getMidPrice(toTokenAddress)
-  const collateralUsd = parseFloat(fromAmount || "0") * getMidPrice(collateralAddress)
+  const collateralUsd = parseFloat(debouncedFromAmount || "0") * getMidPrice(collateralAddress)
   const sizeUsd = tradeFlags.isSwap ? collateralUsd : sizeFromCollateralAndLeverage(collateralUsd, leverage)
 
   const fees = useTradeFees({ sizeUsd, marketAddress, isIncrease: true, tradeType })
@@ -53,7 +55,8 @@ export function TradePanel() {
     : hasXlmError
       ? `Insufficient XLM balance for execution fees (requires ~${fees.executionFeeXlm.toFixed(2)} XLM)`
       : undefined
-  const canTrade = collateralAmount > 0 && !validationError
+  const priceStale = isStale(toTokenAddress)
+  const canTrade = collateralAmount > 0 && !validationError && !priceStale
 
   const liquidationPrice = useMemo(() => {
     if (!tradeFlags.isPosition || sizeUsd <= 0 || entryPrice <= 0) return 0
@@ -209,6 +212,10 @@ export function TradePanel() {
       </div>
 
       {/* ── Submit button ─────────────────────────────────────────── */}
+      {priceStale && (
+        <p className="text-center text-xs text-muted-foreground">Waiting for price update…</p>
+      )}
+
       <Button
         className={`mt-1 w-full font-medium ${
           tradeFlags.isLong

@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { useWalletStore } from "../store/wallet-store"
 import { ConnectButton } from "./ConnectButton"
+import { useWalletStore } from "../store/wallet-store"
 import { useKeyboardShortcut } from "@/shared/hooks/useKeyboardShortcut"
 import { fakeWalletAddress } from "@/test/fakes/wallet"
 

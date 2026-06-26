@@ -1,5 +1,5 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { cleanup, render, screen } from "@testing-library/react"
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
+import { render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
 import type { TradePanel as TradePanelComponent } from "./TradePanel"
@@ -159,10 +159,6 @@ describe("TradePanel", () => {
       network: "testnet",
       pendingTransactionXdr: null,
     })
-  })
-
-  afterEach(() => {
-    cleanup()
   })
 
   it("renders side selector with Long, Short, and Swap tabs", () => {

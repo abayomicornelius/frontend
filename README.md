@@ -35,7 +35,7 @@ Every one of these still routes through the same non-custodial build → sign (F
 ---
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/fbc7cc47-ab6d-4e92-8ac6-2fb7604ea50e" />
 
-<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/2b3d6429-4c38-4f2f-be8b-680654f26992" />
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/8e6b93fd-6a26-4bac-8708-bdf8f42b00d5" />
 
 
 ## Tech Stack

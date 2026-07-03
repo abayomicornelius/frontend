@@ -2,6 +2,15 @@
 
 StellarSend is a production-quality, non-custodial web application for sending money globally using the [Stellar blockchain](https://stellar.org). It connects to the Freighter browser wallet, fetches live exchange quotes (via a backend or Stellar Horizon directly), builds and signs transactions client-side, and submits them to the network.
 
+**What makes it different:** any wallet can do a single non-custodial send — that part isn't the product. This frontend also exposes four things a plain wallet UI has no concept of, each backed by real on-chain logic rather than a client-side trick:
+
+- **Subscriptions** (`/subscriptions`) — authorize a recurring payment once instead of re-signing every period.
+- **Batch send** (`/batch`) — pay a list of recipients as one atomic transaction instead of one send per recipient.
+- **Payment requests** (`/requests`, `/pay/:id`) — generate a shareable, QR-codeable invoice, so the app can receive a request for payment, not just originate one.
+- **Escrow** (`/escrow`) — lock funds under a time or arbiter condition instead of an irreversible instant transfer.
+
+Every one of these still routes through the same non-custodial build → sign (Freighter) → submit flow as a regular send below — nothing here ever asks for or transmits a private key.
+
 ---
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/e1e72129-bfeb-42bf-b569-33d83cc85801" />
 

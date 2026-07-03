@@ -17,6 +17,10 @@ StellarSend is a production-quality, non-custodial web application for sending m
 - **Activity charts** — 7-day and 30-day volume charts (recharts)
 - **Testnet / Mainnet toggle** — switch with one click in Settings
 - **Dark-navy UI** — professional indigo/Stellar-blue design, fully responsive
+- **Scheduled & recurring payments** — set up a one-time future-dated or repeating transfer (`/subscriptions`)
+- **Split / batch payments** — pay multiple recipients in a single transaction (`/batch`)
+- **Payment requests / invoicing** — generate a shareable link + QR code that prefills the payer's send flow (`/requests`, `/pay/:id`)
+- **Escrow / conditional transfers** — lock funds until a time or arbiter condition releases them (`/escrow`)
 
 ---
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/09ab4eb3-44c9-4b90-91a3-e8f2b3c2337b" />
@@ -225,6 +229,37 @@ SendForm (user input)
 ### Horizon fallback
 
 When the backend is unavailable (no `VITE_API_URL` or unreachable), `fetchAccountFromHorizon` and `fetchTransactionsFromHorizon` in `src/lib/api.ts` query the public Stellar Horizon API directly. This means balance display and history work offline from the backend; quote/send still requires the backend.
+
+---
+
+## Differentiator Features
+
+Four pages beyond the core send flow, backed by [`StellarSend/contracts`](https://github.com/StellarSend/contracts) and [`StellarSend/backend`](https://github.com/StellarSend/backend). Every fund-moving action still goes through the same build → sign (Freighter) → submit pattern as a regular send — nothing here asks for or transmits a private key.
+
+| Page | What it does |
+|---|---|
+| `/subscriptions` (`src/pages/Subscriptions.tsx`) | Create/list/cancel a recurring payment — recipient, asset, amount, interval, start date |
+| `/batch` (`src/pages/BatchSend.tsx`) | Add multiple recipient + amount rows and submit them as one transaction |
+| `/requests` + `/pay/:id` (`src/pages/PaymentRequests.tsx`, `src/pages/PayRequest.tsx`) | Create a payment request with a shareable link and QR code; `/pay/:id` prefills the send flow from a request |
+| `/escrow` (`src/pages/Escrow.tsx`) | Create an escrow and list ones you're party to; release/refund buttons are gated in the UI to match the contract's own rules (`getEscrowPermissions()` in `src/types/index.ts`) — you won't see a "release" button before you're allowed to use it |
+
+New types live in `src/types/index.ts` (`Subscription`, `BatchRecipient`/`BatchPaymentFormValues`, `PaymentRequest`, `Escrow`); new API calls in `src/lib/api.ts` (`subscriptionApi`, `batchPaymentApi`, `paymentRequestApi`, `escrowApi`); new hooks alongside each page (`useSubscriptions`, `useBatchPayment`, `usePaymentRequests`, `useEscrows`). QR rendering uses the `qrcode` package (chosen over hand-rolling an encoder — correct Reed-Solomon error correction is easy to get subtly wrong).
+
+Each feature area has at least one component test (see [Testing](#testing) below) covering real behavior — form validation, zero-amount rejection, escrow button role-gating.
+
+> **Known gap:** these pages were built against a planned backend API spec rather than the backend's final implementation (built in parallel). Escrow's release/refund flow has been reconciled end-to-end (build unsigned tx → sign → relay). The other three features' exact endpoint paths and payload field casing should be checked against `StellarSend/backend`'s `src/lib/api.ts` before relying on them against a live backend.
+
+---
+
+## Testing
+
+This repo previously had `*.test.tsx`/`*.test.ts` files with no test runner actually wired up. That's now fixed:
+
+```bash
+npm run test        # vitest run
+```
+
+Vitest is configured with `jsdom` and `src/test/setup.ts` (see `vite.config.ts`). 55+ tests currently pass covering utils, hooks, and the new feature components.
 
 ---
 

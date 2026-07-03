@@ -33,7 +33,7 @@ Every one of these still routes through the same non-custodial build → sign (F
 - **Escrow / conditional transfers** — lock funds until a time or arbiter condition releases them (`/escrow`)
 
 ---
-<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/ba130d49-0a7d-453e-9149-7972d83a2d62" />
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/fbc7cc47-ab6d-4e92-8ac6-2fb7604ea50e" />
 
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/2b3d6429-4c38-4f2f-be8b-680654f26992" />
 

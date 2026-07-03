@@ -12,7 +12,8 @@ StellarSend is a production-quality, non-custodial web application for sending m
 Every one of these still routes through the same non-custodial build → sign (Freighter) → submit flow as a regular send below — nothing here ever asks for or transmits a private key.
 
 ---
-<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/e1e72129-bfeb-42bf-b569-33d83cc85801" />
+    <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/98abd0cb-4e16-4293-b62b-e7af162ec838" />
+
 
 ## Features
 

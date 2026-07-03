@@ -20,6 +20,9 @@ import { NetworkBadge } from '@/components/ui/Badge'
 import { useWallet } from '@/hooks/useWallet'
 import { cn } from '@/lib/utils'
 
+// Kept here only for the mobile/tablet dropdown below `lg` — the Sidebar
+// is the single source of navigation at `lg` and up, so this list must
+// not also render as a second desktop nav bar (previously duplicated).
 const navLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/send', label: 'Send', icon: Send },
@@ -32,7 +35,7 @@ const navLinks = [
 ]
 
 export function Navbar() {
-  const { isConnected, network } = useWallet()
+  const { isConnected, publicKey, network } = useWallet()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
@@ -52,39 +55,18 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-1 ml-2">
-          {navLinks.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
-                  isActive
-                    ? 'bg-stellar-500/15 text-stellar-400'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5',
-                )
-              }
-            >
-              <Icon size={15} />
-              {label}
-            </NavLink>
-          ))}
-        </div>
-
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Right side */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* Right side: network + address only — the Sidebar owns navigation */}
+        <div className="hidden lg:flex items-center gap-3">
           {isConnected && <NetworkBadge network={network} />}
-          {isConnected ? <WalletInfo /> : <ConnectWallet />}
+          {isConnected && publicKey ? <WalletInfo /> : <ConnectWallet />}
         </div>
 
-        {/* Mobile menu toggle */}
+        {/* Mobile/tablet menu toggle — covers the gap below the Sidebar's `lg` breakpoint */}
         <button
-          className="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle navigation"
         >
@@ -92,9 +74,9 @@ export function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile dropdown */}
+      {/* Mobile/tablet dropdown — the only place these links render below `lg` */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-navy-700/50 bg-navy-900 px-4 py-4 space-y-1">
+        <div className="lg:hidden border-t border-navy-700/50 bg-navy-900 px-4 py-4 space-y-1">
           {navLinks.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -114,7 +96,7 @@ export function Navbar() {
             </NavLink>
           ))}
           <div className="pt-3 border-t border-navy-700/50">
-            {isConnected ? <WalletInfo /> : <ConnectWallet fullWidth />}
+            {isConnected && publicKey ? <WalletInfo /> : <ConnectWallet fullWidth />}
           </div>
         </div>
       )}
